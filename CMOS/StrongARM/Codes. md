@@ -1,0 +1,71 @@
+## Differential test
+.model nmos nmos level=1 VTO=0.5 KP=200u
+.model pmos pmos level=1 VTO=-0.5 KP=100u
+
+.tran 0.1n 200n
+
+.control
+run
+plot v(clk)
+plot v(p) v(q)
+plot v(x) v(y)
+plot v(x)-v(y)
+.endc
+
+## Sweep test
+.param VCM=0.9
+.param VDIFF=5m
+
+.model nmos nmos level=1 VTO=0.5 KP=200u
+.model pmos pmos level=1 VTO=-0.5 KP=100u
+
+.tran 0.1n 200n
+.control
+foreach diff 1m 2m 3m 4m 5m 6m 7m 8m 10m 12m 15m
+  alterparam VDIFF=$diff
+  run
+end
+
+plot v(x)-v(y)
+.endc
+
+## Envelope detector
+.param VCM=0.9
+.param VDIFF=5m
+
+.model nmos nmos level=1 VTO=0.5 KP=200u
+.model pmos pmos level=1 VTO=-0.5 KP=100u
+
+.tran 0.1n 200n
+
+.control
+run
+
+plot v(clk)
+plot v(vin1) v(vin2)
+plot v(p)-v(q)
+plot v(x)-v(y)
+
+.endc
+
+## Decision Time calculation
+.param VDIFF=50m
+.model nmos nmos level=1 VTO=0.5 KP=200u
+.model pmos pmos level=1 VTO=-0.5 KP=100u
+.tran 0.1n 200n
+
+.control
+run
+
+plot v(clk)
+plot v(x)
+
+* Align same switching cycle
+meas tran t_clk when v(clk)=0.9 rise=2
+meas tran t_out when v(x)=1.2 rise=2
+
+let t_decision = t_out - t_clk
+
+print t_clk t_out t_decision
+
+.endc
